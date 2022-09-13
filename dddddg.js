@@ -67,7 +67,7 @@ function start() {
 	startGame();
 
 	// terrain
-	wwWgmTerr = createWorker(DiamondSquare, [getRiverXPos, subVec, addVec, flipVec, lenVec, normVec, randPrngSeed]);
+	wwWgmTerr = createWorker(DiamondSquare, [clamp, getRiverXPos, subVec, addVec, flipVec, lenVec, normVec, randPrngSeed]);
 	// ///////
 	
 	// boat
@@ -828,7 +828,7 @@ function updateMouse(e) {
 
 function getRiverXPos(x) {
 	const riveriscale = 5;
-	return Math.sin(x/30/riveriscale)*Math.cos(x/12/riveriscale)*Math.cos(x/29/riveriscale)*Math.cos(x/43/riveriscale);
+	return clamp(-0.7, Math.sin(x/30/riveriscale)*Math.cos(x/12/riveriscale)*Math.cos(x/29/riveriscale)*Math.cos(x/43/riveriscale), 0.7);
 }
 
 function getRiverDir(x) {
@@ -844,7 +844,7 @@ function getMemoryCap() {
 }
 
 function getRowSpeed() {
-	return purchasedItems.includes(INV_ITEM_SPEED) ? 0.6 : 0.4;
+	return purchasedItems.includes(INV_ITEM_SPEED) ? 0.65 : 0.4;
 }
 
 function getObstacleSoulLoss() {
