@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "spglsl": "^0.2.6"
+  }
+}

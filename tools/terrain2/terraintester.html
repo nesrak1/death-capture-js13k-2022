@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <script src="terrain.js"></script>
+    </head>
+    <body>
+        <canvas id="c" width=1024 height=1024></canvas><br/>
+        <button onclick="reseed()">RESEED</button><br/>
+        <button onclick="genobj()">GENOBJ</button><br/>
+        <b id="f">SEED: </b><br/>
+        <script>
+        var can = document.getElementById("c");
+        var c = document.getElementById("c").getContext("2d");
+        var f = document.getElementById("f");
+        var b = 256;
+        var terr;
+        var terrobj;
+        var terRnd;
+        var imgData;
+        function reseed() {
+            //terRnd = Math.floor(randPrngSeed() * 0xfffff);
+            rnd = Math.floor(Math.random() * 65535);
+            f.innerHTML = "SEED: " + rnd;
+
+            terrobj = new Terrain(10);
+            terrobj.generate(0.9);
+
+            const average = (array) => array.reduce((a, b) => a + b) / array.length;
+
+            c.clearRect(0, 0, 1024, 1024);
+            c.imageSmoothingEnabled = false;
+
+            terr = [];
+            for (var i = 0; i < b; i++) {
+                var terr2 = [];
+                for (var j = 0; j < b; j++) {
+                    var values = [];
+
+                    for (var x = 0; x < 4; x++) {
+                        for (var y = 0; y < 4; y++) {
+                            var terrValue = (terrobj.get(i * 4 + x, j * 4 + y) / 1024/2 + 0.5);
+                            terrValue *= 1 - (0.2 + 0.4 * (i/b))*(Math.E**(-(((((Math.cos(i/20)*(-i/120)*20+j)-120)**2)/(100+i))**1.4)));
+                            values.push(terrValue);
+                        }
+                    }
+
+                    terr2.push(average(values));
+                }
+                terr.push(terr2);
+            }
+            
+            //var terr = genTerrain(9);
+            for (var i = 0; i < b; i++) {
+                for (var j = 0; j < b; j++) {
+                    //c.fillStyle = "rgba(" + terr[i*b+j]*255 + ",0,0,1)";
+                    c.fillStyle = "rgba(" + terr[i][j] * 255 + ",0,0,1)";
+                    //c.fillStyle = "rgba(" + ((perlinValue + 1) / 2 * 255) + ",0,0,1)";
+                    c.fillRect(i, j, 1, 1);
+                }
+            }
+        }
+        function clamp(x, min, max) {
+            return Math.max(min, Math.min(max, x));
+        }
+        function genobj() {
+            var te = "o terrain\n";
+            for (var i = 0; i < b**2; i++)
+                te += `v ${i%b} ${Math.max(0, terr[i%b][Math.floor(i/b)]/5*255)} ${Math.floor(i/b)}\n`;
+            for (var i = 0; i < b**2; i++) {
+                var l = Math.max(0, terr[clamp((i%b)-1, 0, b-1)][clamp(Math.floor(i/b), 0, b-1)]*255);
+                var r = Math.max(0, terr[clamp((i%b)+1, 0, b-1)][clamp(Math.floor(i/b), 0, b-1)]*255);
+                var d = Math.max(0, terr[clamp((i%b), 0, b-1)][clamp(Math.floor(i/b)-1, 0, b-1)]*255);
+                var u = Math.max(0, terr[clamp((i%b), 0, b-1)][clamp(Math.floor(i/b)+1, 0, b-1)]*255);
+
+                var hc = l-r;
+                var vc = d-u;
+                var sqr = Math.sqrt(hc**2 + vc**2 + 2**2);
+                te += `vn ${-hc/sqr} ${-2/sqr} ${-vc/sqr}\n`;
+            }
+            var idx = 1;
+            for (var i = 0; i < (b-1); i++) {
+                for (var j = 0; j < (b-1); j++) {
+                    te += `f ${idx}//${idx} ${idx+1}//${idx+1} ${idx+b+1}//${idx+b+1}\n`;
+                    te += `f ${idx}//${idx} ${idx+b+1}//${idx+b+1} ${idx+b}//${idx+b}\n`;
+                    idx++;
+                }
+                idx++;
+            }
+            download("terrainmdl.obj", te);
+        }
+        function download(filename, text) {
+            var element = document.createElement("a");
+            element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+            element.setAttribute("download", filename);
+            element.style.display = "none";
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        //seed = 0.4093785457846508;
+        //seed = Math.random(-1,1);
+        reseed();
+        </script>
+    </body>
+</html>
